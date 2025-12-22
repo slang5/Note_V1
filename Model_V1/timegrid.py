@@ -12,7 +12,7 @@ class Calendar:
     end_date: date
     dt: Optional[float] = None
     n_steps: Optional[int] = None
-    trading_days: float = 252.0
+    trading_days: float = 365.0
 
     def __post_init__(self):
         if self.dt is not None and self.n_steps is not None:
@@ -39,4 +39,5 @@ class Calendar:
 
     @property
     def get_time_dt(self) -> NDArray:
-        return diff(array(self.get_dates))
+        dt = diff(array(self.get_dates)).astype('timedelta64[D]').astype(float) / self.trading_days
+        return dt
