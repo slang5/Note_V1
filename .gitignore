@@ -1,5 +1,5 @@
 .venv
-.Unit_Test/*
+Unit_Test
 
 *.pyc
 __pycache__/
