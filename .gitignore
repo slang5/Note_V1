@@ -1,2 +1,6 @@
 .venv
 .Unit_Test
+
+*.pyc
+__pycache__/
+.ipynb_checkpoints
