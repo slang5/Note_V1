@@ -34,5 +34,7 @@ class Calendar:
     @property
     def get_dates(self):
         return [self.start_date + timedelta(days=int(t * self.trading_days)) for t in self.times]
-    
-    
+
+    @property
+    def get_time_dt(self) -> NDArray:
+        return diff(self.times)
