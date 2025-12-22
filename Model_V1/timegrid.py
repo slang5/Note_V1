@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from datetime import date, timedelta
-from numpy import diff
+from numpy import diff, array
 from numpy.typing import NDArray
 
 @dataclass(frozen=False)
@@ -33,8 +33,10 @@ class Calendar:
         
     @property
     def get_dates(self):
-        return [self.start_date + timedelta(days=int(t * self.trading_days)) for t in self.times]
+        tmp = [self.start_date + timedelta(days=int(t * (self.end_date - self.start_date).days)) for t in self.times]
+        tmp = list(set(tmp))
+        return sorted(tmp)
 
     @property
     def get_time_dt(self) -> NDArray:
-        return diff(self.times)
+        return diff(array(self.get_dates))
