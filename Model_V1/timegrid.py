@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from datetime import date, timedelta
-from numpy import diff, array
+from numpy import diff, array, insert
 from numpy.typing import NDArray
 
 @dataclass(frozen=False)
@@ -40,4 +40,5 @@ class Calendar:
     @property
     def get_time_dt(self) -> NDArray:
         dt = diff(array(self.get_dates)).astype('timedelta64[D]').astype(float) / self.trading_days
+        dt = insert(dt, 0, 0.0)
         return dt
