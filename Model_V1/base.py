@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from abc import ABC
-from typing import Optional
+from typing import Optional, Literal
 
 import numpy as np
 
@@ -51,3 +51,23 @@ class PathBlock:
         self.array[:, 0, :] = 0.0
         return self.array
 
+@dataclass(frozen=False)
+class BasketModel(ABC):
+    config: SimulationConfig
+    n_underlyings: int
+    basket_method: Literal['uniform', 'worst-of', 'best-of']
+    paths:np.typing.NDArray
+
+    def apply_basket_method(self):
+        
+        output = np.zeros_like(self.paths)
+
+        if self.basket_method == 'uniform':
+            output = np.mean(self.paths, axis=2)
+        elif self.basket_method == 'worst-of':
+            output = np.min(self.paths, axis=2)
+        elif self.basket_method == 'best-of':
+            output = np.max(self.paths, axis=2)
+        else:
+            raise ValueError("Invalid basket_method. Choose from 'uniform', 'worst-of', or 'best-of'.")
+        return output

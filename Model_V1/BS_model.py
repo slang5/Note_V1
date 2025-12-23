@@ -1,4 +1,4 @@
-from base import SimulationConfig, PathBlock
+from base import SimulationConfig, PathBlock, BasketModel
 from timegrid import Calendar
 
 from datetime import date
@@ -39,43 +39,45 @@ class BS_Model(SimulationConfig, PortfolioParams):
         PortfolioParams.__post_init__(self)
         self.Paths = PathBlock(
             n_sim=self.n_paths,
-            n_steps=self.calendar.n_steps,
+            n_steps=self.calendar.n_steps, #type: ignore
             d=len(self.underlyings),
+            antithetic=self.antithetic,
             seed=self.seed
         )
-        self.Paths.__post_init__()
 
-    def apply_bs_formula(self):
-        spots = np.array([params.spot for params in self.underlyings.values()])  # shape (d,)
-        vols = np.array([params.vol for params in self.underlyings.values()])    # shape (d,)
-        rates = np.array([params.rate for params in self.underlyings.values()])  # shape (d,)
-        divs = np.array([params.div for params in self.underlyings.values()])    # shape (d,)
+    def apply_bs_value(self):
+        spots = np.array([params.spot for params in self.underlyings.values()])
+        vols = np.array([params.vol for params in self.underlyings.values()])
+        rates = np.array([params.rate for params in self.underlyings.values()])
+        divs = np.array([params.div for params in self.underlyings.values()])
 
-        log_spots = np.log(spots)                                              # shape (d,)
+        log_spots = np.log(spots)
 
-        drifts = rates - divs - 0.5 * vols ** 2                                 # shape (d,)
-        dt_array = self.calendar.get_time_dt                                    # shape (n_steps,)
+        drifts = rates - divs - 0.5 * vols ** 2
+        dt_array = self.calendar.get_time_dt
 
-        Z = self.Paths.array            
-        Z = np.outer(dt_array, drifts) + np.outer(np.sqrt(dt_array), vols) * Z                                  
+        Z = self.Paths.array
+        Z = np.outer(dt_array, drifts) + np.outer(np.sqrt(dt_array), vols) * Z
         
-        log_paths = log_spots + np.cumsum(Z, axis=1)         # shape (n_sim, n_steps, d)
-        paths = np.exp(log_paths)  # shape (n_sim, n_steps, d)
+        log_paths = log_spots + np.cumsum(Z, axis=1)
+        paths = np.exp(log_paths)
 
         return paths
+    
+    def apply_bs_percentage(self):
+        spots = np.array([params.spot for params in self.underlyings.values()])
+        vols = np.array([params.vol for params in self.underlyings.values()])
+        rates = np.array([params.rate for params in self.underlyings.values()])
+        divs = np.array([params.div for params in self.underlyings.values()])
 
-Calendar = Calendar(
-    start_date = date(2024, 1, 1),
-    end_date = date(2025, 12, 31),
-    n_steps = 100
-)
+        log_spots = np.log(spots)
 
-config = SimulationConfig(calendar=Calendar, n_paths=50, seed=42)
-Eq1 = UnderlyingParams(isin="00001", spot=100.0, vol=0.2, rate=0.05, div=0.02)
-Eq2 = UnderlyingParams(isin="00002", spot=150.0, vol=0.25, rate=0.04, div=0.03)
-Eq3 = UnderlyingParams(isin="00003", spot=50.0, vol=0.40, rate=0.05, div=0.02)
-Eq4 = UnderlyingParams(isin="00004", spot=25.0, vol=0.13, rate=0.04, div=0.03)
-portfolio = PortfolioParams(underlyings={"00001": Eq1, "00002": Eq2, "00003": Eq3, "00004": Eq4})
+        drifts = rates - divs - 0.5 * vols ** 2
+        dt_array = self.calendar.get_time_dt
 
-Model = BS_Model(calendar=config.calendar, n_paths=config.n_paths, seed=config.seed, antithetic=config.antithetic, underlyings=portfolio.underlyings)
-print(Model.apply_bs_formula())
+        Z = self.Paths.array
+        Z = np.outer(dt_array, drifts) + np.outer(np.sqrt(dt_array), vols) * Z
+        
+        paths = np.cumsum(Z, axis=1)
+
+        return np.exp(paths)
