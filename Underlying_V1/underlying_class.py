@@ -1,5 +1,6 @@
 from uuid import uuid4
 from yfinance import Ticker
+
 type_list = ['EQUITY', 'BOND', 'FUND', 'ETF', 'COMMODITY', 'CURRENCY']
 ISIN_length = 12
 symbol_max_length = 10
