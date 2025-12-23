@@ -10,7 +10,6 @@ from timegrid import Calendar
 class SimulationConfig(ABC):
     calendar: Calendar
     n_paths: int
-    n_underlyings: int
     seed: Optional[int] = None
     antithetic: bool = True
 
@@ -20,9 +19,6 @@ class SimulationConfig(ABC):
         
         if self.seed is not None and not isinstance(self.seed, int):
             raise ValueError("seed must be an integer or None")
-        
-        if self.n_underlyings <= 0:
-            raise ValueError("n_underlyings must be a positive integer")
         
 @dataclass(frozen=False)
 class PathBlock:
