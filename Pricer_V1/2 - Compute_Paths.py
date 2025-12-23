@@ -5,24 +5,12 @@ ROOT = Path(__file__).resolve().parents[1]
 path.insert(0, str(ROOT))
 
 from datetime import date
+from numpy.typing import NDArray
+import time
 
 from Model_V1.bs_model import BS_Model, UnderlyingParams, PortfolioParams
 from Model_V1.timegrid import Calendar
 from Model_V1.base import SimulationConfig, BasketModel
-
-Calendar_Config = Calendar(
-    start_date=date(2010, 1, 1),
-    end_date=date(2020, 1, 1),
-    n_steps=100,
-    trading_days=365.0
-)
-
-Sim_Config = SimulationConfig(
-    calendar=Calendar_Config,
-    n_paths=1000,
-    seed=42,
-    antithetic=False
-)
 
 Equity_1 = UnderlyingParams(
     isin="FR0000131104",
@@ -50,7 +38,23 @@ Equity_3 = UnderlyingParams(
 
 portfolio = PortfolioParams(
     underlyings={
-        Equity_1.isin: Equity_1}
+        Equity_1.isin: Equity_1,
+        Equity_2.isin: Equity_2,
+        Equity_3.isin: Equity_3}
+)
+
+Calendar_Config = Calendar(
+    start_date=date(2010, 1, 1),
+    end_date=date(2020, 1, 1),
+    n_steps=2000,
+    trading_days=365.0
+)
+
+Sim_Config = SimulationConfig(
+    calendar=Calendar_Config,
+    n_paths=1000,
+    seed=42,
+    antithetic=False
 )
 
 BS = BS_Model(
@@ -61,5 +65,19 @@ BS = BS_Model(
     antithetic=Sim_Config.antithetic
 ) 
 
-Path = BS.apply_bs_percentage()
-print(Path)
+start = time.time()
+
+Paths = BS.apply_bs_percentage()
+
+Basket = BasketModel(
+    config=Sim_Config,
+    n_underlyings=len(portfolio.underlyings),
+    basket_method="uniform",
+    paths=Paths,
+)
+
+Basket_paths = Basket.apply_basket_method()
+print(Basket_paths)
+
+end = time.time()
+print(f"Computation Time: {end - start} seconds")
