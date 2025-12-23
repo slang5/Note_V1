@@ -4,7 +4,7 @@ from typing import Optional, Literal
 
 import numpy as np
 
-from Model_V1.timegrid import Calendar
+from B_Model_V1.timegrid import Calendar
 
 @dataclass(frozen=False)
 class SimulationConfig(ABC):

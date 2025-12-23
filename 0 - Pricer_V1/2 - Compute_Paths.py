@@ -8,9 +8,9 @@ from datetime import date
 from numpy.typing import NDArray
 import time
 
-from Model_V1.bs_model import BS_Model, UnderlyingParams, PortfolioParams
-from Model_V1.timegrid import Calendar
-from Model_V1.base import SimulationConfig, BasketModel
+from B_Model_V1.bs_model import BS_Model, UnderlyingParams, PortfolioParams
+from B_Model_V1.timegrid import Calendar
+from B_Model_V1.base import SimulationConfig, BasketModel
 
 Equity_1 = UnderlyingParams(
     isin="FR0000131104",
@@ -46,13 +46,13 @@ portfolio = PortfolioParams(
 Calendar_Config = Calendar(
     start_date=date(2010, 1, 1),
     end_date=date(2020, 1, 1),
-    n_steps=2000,
+    n_steps=16,
     trading_days=365.0
 )
 
 Sim_Config = SimulationConfig(
     calendar=Calendar_Config,
-    n_paths=1000,
+    n_paths=6_000_000,
     seed=42,
     antithetic=False
 )

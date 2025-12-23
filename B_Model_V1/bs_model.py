@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from Model_V1.base import SimulationConfig, PathBlock
+from B_Model_V1.base import SimulationConfig, PathBlock
 
 @dataclass(frozen=True)
 class UnderlyingParams:
