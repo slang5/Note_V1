@@ -38,7 +38,6 @@ def delete_database(path: str):
         print(f"{path} does not exist.")
 
 def create_database(path: str):
-    # Sample data for demonstration
     data = {
         'name': [],
         'symbol': [],
@@ -49,7 +48,6 @@ def create_database(path: str):
         'id': []
     }
     
-    # Create a DataFrame
     df = pd.DataFrame(data)
     save_database(df, path)
     
