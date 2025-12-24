@@ -42,3 +42,8 @@ class Calendar:
         dt = diff(array(self.get_dates)).astype('timedelta64[D]').astype(float) / self.trading_days
         dt = insert(dt, 0, 0.0)
         return dt
+    
+    def get_nearest_time_index(self, D: date) -> date:
+        date_list = self.get_dates
+        nearest_date = min(date_list, key=lambda d: abs(d - D))
+        return nearest_date

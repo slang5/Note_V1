@@ -1,3 +1,4 @@
+from os import name
 from sys import path
 from pathlib import Path
 
@@ -46,13 +47,13 @@ portfolio = PortfolioParams(
 Calendar_Config = Calendar(
     start_date=date(2010, 1, 1),
     end_date=date(2020, 1, 1),
-    n_steps=16,
+    n_steps=100,
     trading_days=365.0
 )
 
 Sim_Config = SimulationConfig(
     calendar=Calendar_Config,
-    n_paths=6_000_000,
+    n_paths=100_000,
     seed=42,
     antithetic=False
 )
@@ -81,3 +82,36 @@ print(Basket_paths)
 
 end = time.time()
 print(f"Computation Time: {end - start} seconds")
+
+from C_Vanilla_V1.Model import Vanilla_Model
+from C_Vanilla_V1.Option import Option_Call, Option_Put, Digital_Call, Digital_Put
+from A_Underlying_V1.database import Database
+
+All_dates = Calendar_Config.get_dates
+dates = [date(2010, 1, 2), date(2010, 2, 6), date(2010, 3, 15), date(2019, 11, 25), date(2020, 1, 1)]
+
+DB = Database()
+DB.start_connection(r"C:\\Users\\luang\\Documents\\Note_V1\\0 - Pricer_V1\\database.csv")
+Eq1 = DB.get_underlying("FR0000131104")
+DB.end_connection()
+
+Call = Option_Call(
+    start_date=date(2010, 1, 1), 
+    end_date=date(2020, 1, 1), 
+    option_type='EU', 
+    strike_price=100.0, 
+    value_method='absolute', 
+    underlyings=[Eq1], 
+    basket_method="uniform"
+)
+
+Vanilla = Vanilla_Model(
+    option=Call,
+    config=Sim_Config,
+    paths=Basket_paths,
+    strikes_dates=dates
+)
+
+Vanilla.update_strikes_dates()
+Reduced_Paths = Vanilla.reduce_to_strike_dates()
+print(Reduced_Paths.T)
