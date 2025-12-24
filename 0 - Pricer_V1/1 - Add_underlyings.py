@@ -41,7 +41,7 @@ ul_4 = Underlying(name="TOTALENERGIES",
 
 list_underlyings = [ul_1, ul_2, ul_3, ul_4]
 
-db_path = ROOT / "Pricer_V1" / "database.csv"
+db_path = ROOT / "0 - Pricer_V1" / "database.csv"
 
 db = Database()
 db.create_database(str(db_path))

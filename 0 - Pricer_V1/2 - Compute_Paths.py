@@ -91,7 +91,8 @@ All_dates = Calendar_Config.get_dates
 dates = [date(2010, 1, 1), date(2011, 1, 1)]#, date(2010, 3, 18), date(2012, 5, 26), date(2012, 10, 27)]
 
 DB = Database()
-DB.start_connection(r"C:\\Users\\luang\\Documents\\Note_V1\\0 - Pricer_V1\\database.csv")
+db_path = ROOT / "0 - Pricer_V1" / "database.csv"
+DB.start_connection(str(db_path))
 Eq1 = DB.get_underlying("FR0000131104")
 DB.end_connection()
 
@@ -99,11 +100,11 @@ Call = Option_Call(
     start_date=date(2010, 1, 1), 
     end_date=date(2011, 1, 1), 
     option_type='EU', 
-    strike_price=1, 
+    strike_price=1.1, 
     value_method='relative', 
     underlyings=[Eq1], 
-    basket_method="best-of",
-    rebate=0
+    basket_method="uniform",
+    rebate=0.0,
 )
 
 Vanilla = Vanilla_Model(
