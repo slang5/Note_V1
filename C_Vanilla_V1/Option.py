@@ -4,19 +4,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 path.insert(0, str(ROOT))
 
-from typing import Literal
+from typing import Literal, Union
 from datetime import date
 
 from A_Underlying_V1.underlying_class import Underlying
-from A_Underlying_V1.database import Database
 
 rounding_precision = 5
 
 class Option:
-    def __init__(self, start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method):
-
-        if option_type not in ['EU', 'US']:
-            raise ValueError("option_type must be either 'EU' or 'US'")
+    def __init__(self, start_date: date, end_date: date, option_type: Literal['EU', 'US'], strike_price: float, value_method: Literal['absolute', 'relative'], underlyings: list[Underlying], basket_method: Literal['uniform', 'worst-of', 'best-of']):
         
         if start_date >= end_date:
             raise ValueError("start_date must be earlier than end_date") # no intraday options
@@ -24,15 +20,6 @@ class Option:
         if strike_price <= 0:
             raise ValueError("strike_price must be positive") # no null or negative strike price
         
-        if value_method not in ['absolute', 'relative']:
-            raise ValueError("value_method must be either 'absolute' or 'relative'")
-        
-        if not isinstance(underlyings, list) or not all(isinstance(u, Underlying) for u in underlyings):
-            raise ValueError("underlyings must be a list of Underlying instances")
-        
-        if basket_method not in ['uniform', 'worst-of', 'best-of']:
-            raise ValueError("basket_method must be either 'uniform', 'worst-of', or 'best-of'")
-
         self.start_date:date = start_date
         self.end_date:date = end_date
         self.maturity_days:int = (end_date - start_date).days
