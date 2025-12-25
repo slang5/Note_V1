@@ -6,7 +6,6 @@ ROOT = Path(__file__).resolve().parents[1]
 path.insert(0, str(ROOT))
 
 from datetime import date
-from numpy.typing import NDArray
 import time
 
 from B_Model_V1.bs_model import BS_Model, UnderlyingParams, PortfolioParams
@@ -44,9 +43,13 @@ portfolio = PortfolioParams(
         Equity_3.isin: Equity_3}
 )
 
+start_date = date(2010, 1, 1)
+end_date = date(2011, 1, 1)
+basket_method = "uniform"
+
 Calendar_Config = Calendar(
-    start_date=date(2010, 1, 1),
-    end_date=date(2011, 1, 1),
+    start_date=start_date,
+    end_date=end_date,
     n_steps=2,
     trading_days=365.0
 )
@@ -73,48 +76,20 @@ Paths = BS.apply_bs_percentage()
 Basket = BasketModel(
     config=Sim_Config,
     n_underlyings=len(portfolio.underlyings),
-    basket_method="uniform",
+    basket_method=basket_method,
     paths=Paths,
 )
 
 Basket_paths = Basket.apply_basket_method()
-#print(Basket_paths)
+print(f"Paths array shape: {Basket_paths.shape}")
+
+n_shown_paths = 5
+print(f"Showing first {n_shown_paths} paths of the basket:")
+print(f"dates : {Calendar_Config.get_dates}")
+
+for i in range(n_shown_paths):
+    print(f"Path {i+1}: {Basket_paths[i]}")
+
 
 end = time.time()
 print(f"Computation Time: {end - start} seconds")
-
-from C_Vanilla_V1.Model import Vanilla_Model
-from C_Vanilla_V1.Option import Option_Call, Option_Put, Digital_Call, Digital_Put
-from A_Underlying_V1.database import Database
-
-All_dates = Calendar_Config.get_dates
-dates = [date(2010, 1, 1), date(2011, 1, 1)]#, date(2010, 3, 18), date(2012, 5, 26), date(2012, 10, 27)]
-
-DB = Database()
-db_path = ROOT / "0 - Pricer_V1" / "database.csv"
-DB.start_connection(str(db_path))
-Eq1 = DB.get_underlying("FR0000131104")
-DB.end_connection()
-
-Call = Option_Call(
-    start_date=date(2010, 1, 1), 
-    end_date=date(2011, 1, 1), 
-    option_type='EU', 
-    strike_price=1.1, 
-    value_method='relative', 
-    underlyings=[Eq1], 
-    basket_method="uniform",
-    rebate=0.0,
-)
-
-Vanilla = Vanilla_Model(
-    option=Call,
-    config=Sim_Config,
-    paths=Basket_paths,
-    strikes_dates=dates
-)
-
-Vanilla.update_strikes_dates()
-price = Vanilla.price(spot=1)
-
-print(price)

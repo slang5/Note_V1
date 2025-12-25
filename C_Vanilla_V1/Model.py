@@ -5,6 +5,7 @@ from datetime import date
 from numpy import typing, float64, where
 
 from C_Vanilla_V1.Option import Digital_Option, Option_Call, Option_Put, Digital_Call, Digital_Put
+from C_Vanilla_V1.Barrier import Barrier_Feature
 from B_Model_V1.base import SimulationConfig
 
 class Vanilla_Model:
@@ -52,14 +53,14 @@ class Vanilla_Model:
 
         if option.option_type == 'EU':
             if isinstance(option, Option_Call):
-
-                one_path_final = where(one_path > strike_value, one_path - strike_value, rebate)
+                levier = option.levier
+                one_path_final = where(one_path > strike_value, levier * (one_path - strike_value), rebate)
                 price_mean = one_path_final.mean()
                 price_std = one_path_final.std()
                 
             if isinstance(option, Option_Put):
-
-                one_path_final = where(one_path < strike_value, strike_value - one_path, rebate)
+                levier = option.levier
+                one_path_final = where(one_path < strike_value, levier * (strike_value - one_path), rebate)
                 price_mean = one_path_final.mean()
                 price_std = one_path_final.std()
 
@@ -94,4 +95,40 @@ class Vanilla_Model:
 
         return pricing_dict
 
+class Barrier_Model:
+    def __init__(self, barrier_feature: Barrier_Feature, config: SimulationConfig):
+        self.barrier_feature = barrier_feature
+        self.config = config
         
+        self.level: float
+
+    def levels(self):
+        spot = self.barrier_feature.spot_price
+        method = self.barrier_feature.value_method
+        barrier_level = self.barrier_feature.barrier_level
+
+        if method == 'absolute':
+            self.level = barrier_level
+        elif method == 'relative':
+            self.level = barrier_level * spot # from spot value and barrier relative to spot value to absolute value
+        return self.level
+    
+    def observe(self):
+
+        value_if_activated:int = 1
+        value_if_not_activated:int = 0
+        tmp_array = self.barrier_feature.reduce_to_strike_dates()
+
+        if self.barrier_feature.barrier_mecanism in ['U&I']:
+            observed = where(tmp_array >= self.levels(), value_if_activated, value_if_not_activated)
+
+        elif self.barrier_feature.barrier_mecanism in ['U&O']:
+            observed = where(tmp_array >= self.levels(), value_if_not_activated ,value_if_activated)
+
+        elif self.barrier_feature.barrier_mecanism in ['D&I']:    
+            observed = where(tmp_array <= self.levels(), value_if_activated, value_if_not_activated)
+
+        elif self.barrier_feature.barrier_mecanism in ['D&O']:
+            observed = where(tmp_array <= self.levels(), value_if_not_activated ,value_if_activated)
+
+        return observed
