@@ -138,6 +138,24 @@ class Barrier_Model:
 
         return observed
     
+    def apply_observe_method(self, method_obs: Literal["Best", "Worst", "Last", "First", "Above_Mean"]):
+
+        observations = self.observe()
+
+        if method_obs == "Best":
+            results = observations.max(axis=1)
+        elif method_obs == "Worst":
+            results = observations.min(axis=1)
+        elif method_obs == "Last":
+            results = observations[:,-1]
+        elif method_obs == "First":
+            results = observations[:,0]
+        elif method_obs == "Above_Mean":
+            mean_obs = observations.mean(axis=1)
+            results = where(mean_obs >= 0.5, 1, 0)
+
+        return results.reshape((results.shape[0], 1))
+    
 class Vanilla_Barrier_Model:
     def __init__(self, option: Union[Option_Call, Option_Put, Digital_Call, Digital_Put], barrier_feature: Barrier_Feature, config: SimulationConfig, paths: typing.NDArray[float64], strikes_dates: list[date], barrier_method: Literal["Best", "Worst", "Last", "First", "Above_Mean"]):
         
@@ -150,4 +168,5 @@ class Vanilla_Barrier_Model:
         self.strikes_dates = strikes_dates
         self.paths = round(paths, accuracy_float)
         
+    
     
