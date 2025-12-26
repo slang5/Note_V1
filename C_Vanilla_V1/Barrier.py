@@ -26,6 +26,7 @@ class Barrier_Feature():
 
         self.observation_dates: Union[list[date], None] = observation_dates
         self.calendar: Union[Calendar, None] = calendar
+        self.forced_behavior_US()
 
         if calendar is None or observation_dates is None:
             self.calendar = None
@@ -33,6 +34,17 @@ class Barrier_Feature():
         
         else:
             self.update_observation_dates()
+
+    def forced_behavior_US(self):
+        if self.barrier_exercise == 'US':
+            if self.calendar is None:
+                raise ValueError("Calendar must be provided for American observation.")
+            if self.calendar.get_dates != self.observation_dates:
+                print("Observation dates updated to match calendar dates for American observation.")
+
+            self.observation_dates = self.calendar.get_dates
+        else:
+            pass  # European exercise, no forced behavior
 
     def update_observation_dates(self):
         if self.calendar is None or self.observation_dates is None:

@@ -23,10 +23,13 @@ date_start = date(2010, 1, 1)
 date_end = date(2011, 1, 1)
 mid_date = date_start + (date_end - date_start) / 2
 
-level_method = "relative"  # "absolute" or "relative"
+level_method = "absolute"  # "absolute" or "relative"
 basket_method = "uniform"
-steps = 2
+steps = 5
 n_paths = 100_000
+barrier_type = 'D&I'
+barrier_obs = 'EU'
+
 
 Equity_1 = UnderlyingParams(
     isin="FR0000131104",
@@ -80,15 +83,17 @@ new_paths = Basket.apply_basket_method()
 Barrier = Barrier_Feature(
     start_date=date_start,
     end_date=date_end,
-    barrier_mecanism='D&I',
-    barrier_exercise='EU',
-    barrier_level=1.0,
+    barrier_mecanism=barrier_type,
+    barrier_exercise=barrier_obs,
+    barrier_level=45.0,
     spot_price=Equity_1.spot,
     value_method=level_method,
     paths=new_paths,
     observation_dates=[date_start, mid_date, date_end],
     calendar=Calendar_Config
 )
+
+new_new_paths = Barrier.reduce_to_strike_dates()
 
 Barrier_model = Barrier_Model(
     barrier_feature=Barrier,
@@ -104,4 +109,4 @@ print(f"Computation time for barrier observation: {time_end - time_start} second
 n_first = 10
 print(f'Parameters: barrier_level={Barrier_model.level}, value_method={Barrier.value_method}') 
 for i in range(n_first):
-    print(f'Path {i} : {Barrier_observation[i]} , {new_paths[i]}' )
+    print(f'Path {i} : {Barrier_observation[i]} , {new_new_paths[i]}' )
