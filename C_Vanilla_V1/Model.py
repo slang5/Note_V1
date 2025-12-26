@@ -157,17 +157,32 @@ class Barrier_Model:
         return results.reshape((results.shape[0], 1))
     
 class Vanilla_Barrier_Model:
-    def __init__(self, option: Union[Option_Call, Option_Put, Digital_Call, Digital_Put], barrier_feature: Barrier_Feature, config: SimulationConfig, paths: typing.NDArray[float64], strikes_dates: list[date], barrier_method: Literal["Best", "Worst", "Last", "First", "Above_Mean"]):
+    def __init__(self, option: Union[Option_Call, Option_Put, Digital_Call, Digital_Put], barrier_feature: Barrier_Feature, config: SimulationConfig, paths: typing.NDArray[float64], strikes_dates: list[date], barrier_method: Literal["Best", "Worst", "Last", "First", "Above_Mean"], rebate_if_not_activated: bool = True):
         
         self.Sim_config = config
         
         self.option = option
         self.barrier = barrier_feature
         self.barrier_method:Literal["Best", "Worst", "Last", "First", "Above_Mean"] = barrier_method
+        self.rebate_if_not_activated = rebate_if_not_activated
 
         self.strikes_dates = strikes_dates
         self.paths = round(paths, accuracy_float)
+        self.update_strikes_dates()
         
+        self.warning_dates()
+        
+    def warning_dates(self):
+        
+        if self.barrier.observation_dates is None:
+            return None
+
+        for obs_date in self.barrier.observation_dates:
+            for strike_date in self.strikes_dates:
+                if obs_date > strike_date:
+                    print(f"Warning: Observation date {obs_date} is after strike date {strike_date}.")
+                    return None
+
     def update_strikes_dates(self):
         for t in range(len(self.strikes_dates)):
             nearest_date = self.Sim_config.calendar.get_nearest_time_index(self.strikes_dates[t])
@@ -199,3 +214,92 @@ class Vanilla_Barrier_Model:
         return barrier_observed
     
     
+    def price_one_path(self, one_path_equity: typing.NDArray[float64], one_path_barrier: typing.NDArray[float64], spot: float = 1.0) -> dict[str, Union[float, float64]]:
+
+        strike = self.option.strike_price
+        rebate = 0.0
+        payout = 0.0
+
+        barrier_activated = one_path_barrier[0]
+
+        price_mean: Union[float, float64] 
+        price_std: Union[float, float64]
+
+        if self.option.value_method == 'absolute':
+            strike_value = strike
+            rebate = self.option.rebate
+
+            if isinstance(self.option, Digital_Option):
+                payout = self.option.payout
+    
+        elif self.option.value_method == 'relative': # from relative value to absolute value 
+            strike_value = strike * spot
+            rebate = self.option.rebate * spot
+
+            if isinstance(self.option, Digital_Option):
+                payout = self.option.payout * spot
+
+        if self.option.option_type == 'EU':
+            if isinstance(self.option, Option_Call):
+                levier = self.option.levier
+
+                if self.rebate_if_not_activated:
+                    one_path_final = where(one_path_equity > strike_value, levier * (one_path_equity - strike_value) * barrier_activated + rebate * (1 - barrier_activated), rebate)
+                else:
+                    one_path_final = where(one_path_equity > strike_value, levier * (one_path_equity - strike_value) * barrier_activated, rebate * barrier_activated)
+
+                price_mean = one_path_final.mean()
+                price_std = one_path_final.std()
+        
+            if isinstance(self.option, Option_Put):
+                levier = self.option.levier
+
+                if self.rebate_if_not_activated:
+                    one_path_final = where(one_path_equity < strike_value, levier * (strike_value - one_path_equity) * barrier_activated + rebate * (1 - barrier_activated), rebate)
+                else:
+                    one_path_final = where(one_path_equity < strike_value, levier * (strike_value - one_path_equity) * barrier_activated, rebate * barrier_activated)
+
+
+                one_path_final = where(one_path_equity < strike_value, levier * (strike_value - one_path_equity), rebate)
+                price_mean = one_path_final.mean()
+                price_std = one_path_final.std()
+
+            if isinstance(self.option, Digital_Call):
+
+                if self.rebate_if_not_activated:
+                    one_path_final = where(one_path_equity > strike_value, payout * barrier_activated + rebate * (1 - barrier_activated), rebate)
+                else:
+                    one_path_final = where(one_path_equity > strike_value, payout * barrier_activated, rebate * barrier_activated)
+
+                price_mean = one_path_final.mean()
+                price_std = one_path_final.std()
+            
+            if isinstance(self.option, Digital_Put):
+                
+                if self.rebate_if_not_activated:
+                    one_path_final = where(one_path_equity < strike_value, payout * barrier_activated + rebate * (1 - barrier_activated), rebate)
+                else:
+                    one_path_final = where(one_path_equity < strike_value, payout * barrier_activated, rebate * barrier_activated)
+                price_mean = one_path_final.mean()
+                price_std = one_path_final.std()
+
+        elif self.option.option_type == 'US':
+            raise NotImplementedError("American option pricing not implemented yet.")
+
+
+        price = price_mean
+        std = price_std
+        return {"price": price, "std": std}
+
+    def price(self, spot: float = 1.0) -> dict:
+        
+        pricing_dict: dict[date, dict[str, Union[float, float64]]] = {}
+
+        equity = self.get_path_option()
+        barrier = self.get_path_barrier()
+
+        for i_sim in range(0, len(barrier)):
+            price_std = self.price_one_path(equity[i_sim], barrier[i_sim], spot)
+            pricing_dict[self.strikes_dates[i_sim]] = price_std
+
+        return pricing_dict
