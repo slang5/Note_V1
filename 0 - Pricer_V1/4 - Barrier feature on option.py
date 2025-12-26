@@ -27,7 +27,7 @@ level_method = "absolute"  # "absolute" or "relative"
 basket_method = "uniform"
 steps = 5
 n_paths = 100_000
-barrier_type = 'D&I'
+barrier_type = 'U&I'
 barrier_obs = 'EU'
 
 
@@ -88,16 +88,16 @@ Barrier = Barrier_Feature(
     barrier_level=45.0,
     spot_price=Equity_1.spot,
     value_method=level_method,
-    paths=new_paths,
     observation_dates=[date_start, mid_date, date_end],
     calendar=Calendar_Config
 )
 
-new_new_paths = Barrier.reduce_to_strike_dates()
+new_new_paths = Barrier.reduce_to_strike_dates(paths=new_paths)
 
 Barrier_model = Barrier_Model(
     barrier_feature=Barrier,
-    config=Sim_Config
+    config=Sim_Config,
+    paths=new_paths
 )
 
 time_start = time.time()

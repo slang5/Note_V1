@@ -1,5 +1,5 @@
 
-from typing import Union
+from typing import Union, Literal
 from datetime import date
 
 from numpy import typing, float64, where, round
@@ -102,9 +102,10 @@ class Vanilla_Model:
         return pricing_dict
 
 class Barrier_Model:
-    def __init__(self, barrier_feature: Barrier_Feature, config: SimulationConfig):
+    def __init__(self, barrier_feature: Barrier_Feature, config: SimulationConfig, paths: typing.NDArray[float64]):
         self.barrier_feature = barrier_feature
         self.config = config
+        self.paths = round(paths, accuracy_float)
         
         self.level: float64
 
@@ -121,7 +122,7 @@ class Barrier_Model:
 
         value_if_activated:int = 1
         value_if_not_activated:int = 0
-        tmp_array = self.barrier_feature.reduce_to_strike_dates()
+        tmp_array = self.barrier_feature.reduce_to_strike_dates(self.paths)
 
         if self.barrier_feature.barrier_mecanism in ['U&I']:
             observed = where(tmp_array >= self.levels(), value_if_activated, value_if_not_activated)
@@ -136,3 +137,17 @@ class Barrier_Model:
             observed = where(tmp_array <= self.levels(), value_if_not_activated ,value_if_activated)
 
         return observed
+    
+class Vanilla_Barrier_Model:
+    def __init__(self, option: Union[Option_Call, Option_Put, Digital_Call, Digital_Put], barrier_feature: Barrier_Feature, config: SimulationConfig, paths: typing.NDArray[float64], strikes_dates: list[date], barrier_method: Literal["Best", "Worst", "Last", "First", "Above_Mean"]):
+        
+        self.Sim_config = config
+        
+        self.option = option
+        self.barrier = barrier_feature
+        self.barrier_method = barrier_method
+
+        self.strikes_dates = strikes_dates
+        self.paths = round(paths, accuracy_float)
+        
+    
