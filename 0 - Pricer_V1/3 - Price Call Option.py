@@ -5,13 +5,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 path.insert(0, str(ROOT))
 
-from os import name
-from sys import path
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-path.insert(0, str(ROOT))
-
 from datetime import date
 import time
 
@@ -122,7 +115,7 @@ Vanilla = Vanilla_Model(
     option=Call,
     config=Sim_Config,
     paths=Basket_paths,
-    strikes_dates=dates
+    strikes_dates=dates,
 )
 
 start_timer = time.time()

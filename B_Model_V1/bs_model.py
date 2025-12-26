@@ -4,6 +4,8 @@ import numpy as np
 
 from B_Model_V1.base import SimulationConfig, PathBlock
 
+accuracy_float = 6
+
 @dataclass(frozen=True)
 class UnderlyingParams:
     isin: str
@@ -61,6 +63,8 @@ class BS_Model(SimulationConfig, PortfolioParams):
         log_paths = log_spots + np.cumsum(Z, axis=1)
         paths = np.exp(log_paths)
 
+        paths = np.round(paths, accuracy_float)
+
         return paths
     
     def apply_bs_percentage(self):
@@ -78,5 +82,7 @@ class BS_Model(SimulationConfig, PortfolioParams):
         Z = np.outer(dt_array, drifts) + np.outer(np.sqrt(dt_array), vols) * Z
         
         paths = np.cumsum(Z, axis=1)
+
+        paths = np.round(paths, accuracy_float)
 
         return np.exp(paths)

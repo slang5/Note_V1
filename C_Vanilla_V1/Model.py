@@ -2,16 +2,18 @@
 from typing import Union
 from datetime import date
 
-from numpy import typing, float64, where
+from numpy import typing, float64, where, round
 
 from C_Vanilla_V1.Option import Digital_Option, Option_Call, Option_Put, Digital_Call, Digital_Put
 from C_Vanilla_V1.Barrier import Barrier_Feature
 from B_Model_V1.base import SimulationConfig
 
+accuracy_float = 6
+
 class Vanilla_Model:
     def __init__(self, option: Union[Option_Call, Option_Put, Digital_Call, Digital_Put], config: SimulationConfig, paths: typing.NDArray[float64], strikes_dates: list[date]):
         self.option = option
-        self.paths = paths
+        self.paths = round(paths, accuracy_float)
         self.config = config
         self.strikes_dates = strikes_dates
 
@@ -23,8 +25,12 @@ class Vanilla_Model:
                 self.strikes_dates[t] = nearest_date
 
     def reduce_to_strike_dates(self) -> typing.NDArray[float64]:
+        if len(self.strikes_dates) == 0:
+            raise ValueError("No strike dates provided.")    
+        
         date_indices = [self.config.calendar.get_dates.index(d) for d in self.strikes_dates]
         reduced_paths = self.paths[:, date_indices]
+        
         return reduced_paths
     
     @staticmethod
@@ -100,17 +106,15 @@ class Barrier_Model:
         self.barrier_feature = barrier_feature
         self.config = config
         
-        self.level: float
+        self.level: float64
 
     def levels(self):
         spot = self.barrier_feature.spot_price
         method = self.barrier_feature.value_method
         barrier_level = self.barrier_feature.barrier_level
 
-        if method == 'absolute':
-            self.level = barrier_level
-        elif method == 'relative':
-            self.level = barrier_level * spot # from spot value and barrier relative to spot value to absolute value
+        self.level = round(float64(barrier_level), accuracy_float)
+
         return self.level
     
     def observe(self):

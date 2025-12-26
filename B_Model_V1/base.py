@@ -6,6 +6,8 @@ import numpy as np
 
 from B_Model_V1.timegrid import Calendar
 
+accuracy_float = 6
+
 @dataclass(frozen=False)
 class SimulationConfig(ABC):
     calendar: Calendar
@@ -49,6 +51,9 @@ class PathBlock:
         
         # Turn first row to zeros for initial spot price
         self.array[:, 0, :] = 0.0
+
+        self.array = np.round(self.array, accuracy_float)
+
         return self.array
 
 @dataclass(frozen=False)
