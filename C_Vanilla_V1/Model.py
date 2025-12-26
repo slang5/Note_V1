@@ -163,10 +163,39 @@ class Vanilla_Barrier_Model:
         
         self.option = option
         self.barrier = barrier_feature
-        self.barrier_method = barrier_method
+        self.barrier_method:Literal["Best", "Worst", "Last", "First", "Above_Mean"] = barrier_method
 
         self.strikes_dates = strikes_dates
         self.paths = round(paths, accuracy_float)
         
+    def update_strikes_dates(self):
+        for t in range(len(self.strikes_dates)):
+            nearest_date = self.Sim_config.calendar.get_nearest_time_index(self.strikes_dates[t])
+            if nearest_date != self.strikes_dates[t]:
+                print(f"Updating strike date from {self.strikes_dates[t]} to nearest date {nearest_date}")
+                self.strikes_dates[t] = nearest_date
+
+    def get_path_option(self) -> typing.NDArray[float64]:
+        vanilla_model = Vanilla_Model(
+            option=self.option,
+            config=self.Sim_config,
+            paths=self.paths,
+            strikes_dates=self.strikes_dates
+        )
+
+        reduced_paths = vanilla_model.reduce_to_strike_dates()
+
+        return reduced_paths
+    
+    def get_path_barrier(self) -> typing.NDArray[float64]:
+        barrier_model = Barrier_Model(
+            barrier_feature=self.barrier,
+            config=self.Sim_config,
+            paths=self.paths
+        )
+
+        barrier_observed = barrier_model.apply_observe_method(self.barrier_method)
+
+        return barrier_observed
     
     

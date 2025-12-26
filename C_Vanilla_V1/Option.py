@@ -40,7 +40,7 @@ class Option:
                 f"basket_method={self.basket_method}) ")
     
 class Option_Call(Option):
-    def __init__(self, start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, rebate=0.0, levier=1.0):
+    def __init__(self, start_date:date, end_date:date, option_type:Literal['EU', 'US'], strike_price:float, value_method:Literal['absolute', 'relative'], underlyings: list[Underlying], basket_method: Literal['uniform', 'worst-of', 'best-of'], rebate:float=0.0, levier:float=1.0):
         super().__init__(start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method)
         self.rebate: float = rebate
         self.levier: float = levier
@@ -59,7 +59,7 @@ class Option_Call(Option):
         )
     
 class Option_Put(Option):
-    def __init__(self, start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, rebate=0.0, levier=1.0):
+    def __init__(self, start_date:date, end_date:date, option_type:Literal['EU', 'US'], strike_price:float, value_method:Literal['absolute', 'relative'], underlyings: list[Underlying], basket_method: Literal['uniform', 'worst-of', 'best-of'], rebate:float=0.0, levier:float=1.0):
         super().__init__(start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method)
         self.rebate: float = rebate
         self.levier: float = levier
@@ -79,7 +79,7 @@ class Option_Put(Option):
     
 
 class Digital_Option(Option):
-    def __init__(self, start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, payout=0.0, rebate=0.0):
+    def __init__(self, start_date:date, end_date:date, option_type:Literal['EU', 'US'], strike_price:float, value_method:Literal['absolute', 'relative'], underlyings: list[Underlying], basket_method: Literal['uniform', 'worst-of', 'best-of'], payout:float=0.0, rebate:float=0.0):
         super().__init__(start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method)
         self.payout: float = payout
         self.rebate: float = rebate
@@ -97,7 +97,7 @@ class Digital_Option(Option):
                 f"payout={self.payout})")
     
 class Digital_Call(Digital_Option):
-    def __init__(self, start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, payout=0.0, rebate=0.0):
+    def __init__(self, start_date:date, end_date:date, option_type:Literal['EU', 'US'], strike_price:float, value_method:Literal['absolute', 'relative'], underlyings: list[Underlying], basket_method: Literal['uniform', 'worst-of', 'best-of'], payout:float=0.0, rebate:float=0.0):
         super().__init__(start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, payout, rebate)
     
     def __repr__(self):
@@ -113,8 +113,9 @@ class Digital_Call(Digital_Option):
                 f"payout={self.payout})")
     
 class Digital_Put(Digital_Option):
-    def __init__(self, start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, payout=0.0, rebate=0.0):
+    def __init__(self, start_date:date, end_date:date, option_type:Literal['EU', 'US'], strike_price:float, value_method:Literal['absolute', 'relative'], underlyings: list[Underlying], basket_method: Literal['uniform', 'worst-of', 'best-of'], payout:float=0.0, rebate:float=0.0):
         super().__init__(start_date, end_date, option_type, strike_price, value_method, underlyings, basket_method, payout, rebate)
+    
     def __repr__(self):
         return (f"Digital_Put(type={self.option_type}, "
                 f"start_date={self.start_date}, "
