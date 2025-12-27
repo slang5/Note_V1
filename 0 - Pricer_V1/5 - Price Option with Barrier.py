@@ -18,6 +18,7 @@ from C_Vanilla_V1.Option import Option_Call
 from C_Vanilla_V1.Barrier import Barrier_Feature
 
 # Lets show how price a call option with a D&I barrier feature (ideal path is down first then huge up)
+# Spot 50 / Strike 50 / Barrier 50 / Vol 20%
 
 # --- Parameters 
 
@@ -36,7 +37,7 @@ barrier_method = "Last"
 Equity_1 = UnderlyingParams(
     isin="FR0000131104",
     spot=50.0,
-    vol=0.2,
+    vol=0.20,
     rate=0.01,
     div=0.03
 )
@@ -118,7 +119,7 @@ Call_DownIn_Option = Vanilla_Barrier_Model(
     config=Sim_Config,
     paths=new_paths,
     strikes_dates=[mid_date, date_end],
-    rebate_if_not_activated=False
+    rebate_if_not_activated=True
 )
 
 start_time = time.time()
