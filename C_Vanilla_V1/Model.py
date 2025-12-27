@@ -297,11 +297,6 @@ class Vanilla_Barrier_Model:
         equity = self.get_path_option().T
         barrier = self.get_path_barrier().T
 
-        ## test / remove later
-
-        print("Equity shape:", equity.shape)
-        print("Barrier shape:", barrier.shape)
-
         for i_sim in range(0, len(self.strikes_dates)):
             price_std = self.price_one_path(equity[i_sim], barrier, spot)
             pricing_dict[self.strikes_dates[i_sim]] = price_std
