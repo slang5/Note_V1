@@ -259,8 +259,6 @@ class Vanilla_Barrier_Model:
                 else:
                     one_path_final = where(one_path_equity < strike_value, levier * (strike_value - one_path_equity) * barrier_activated, rebate * barrier_activated)
 
-
-                one_path_final = where(one_path_equity < strike_value, levier * (strike_value - one_path_equity), rebate)
                 price_mean = one_path_final.mean()
                 price_std = one_path_final.std()
 
@@ -280,6 +278,7 @@ class Vanilla_Barrier_Model:
                     one_path_final = where(one_path_equity < strike_value, payout * barrier_activated + rebate * (1 - barrier_activated), rebate)
                 else:
                     one_path_final = where(one_path_equity < strike_value, payout * barrier_activated, rebate * barrier_activated)
+                
                 price_mean = one_path_final.mean()
                 price_std = one_path_final.std()
 
@@ -295,11 +294,17 @@ class Vanilla_Barrier_Model:
         
         pricing_dict: dict[date, dict[str, Union[float, float64]]] = {}
 
-        equity = self.get_path_option()
-        barrier = self.get_path_barrier()
+        equity = self.get_path_option().T
+        barrier = self.get_path_barrier().T
 
-        for i_sim in range(0, len(barrier)):
-            price_std = self.price_one_path(equity[i_sim], barrier[i_sim], spot)
+        ## test / remove later
+
+        print("Equity shape:", equity.shape)
+        print("Barrier shape:", barrier.shape)
+
+        for i_sim in range(0, len(self.strikes_dates)):
+            price_std = self.price_one_path(equity[i_sim], barrier, spot)
             pricing_dict[self.strikes_dates[i_sim]] = price_std
+            pass
 
         return pricing_dict

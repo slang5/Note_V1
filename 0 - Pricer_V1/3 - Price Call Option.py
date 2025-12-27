@@ -42,16 +42,18 @@ Equity_3 = UnderlyingParams(
 
 portfolio = PortfolioParams(
     underlyings={
-        Equity_1.isin: Equity_1,
-        Equity_2.isin: Equity_2,
-        Equity_3.isin: Equity_3}
-)
+        Equity_1.isin: Equity_1,})
+        #Equity_2.isin: Equity_2,
+        #Equity_3.isin: Equity_3}
+#)
 
 date_start = date(2010, 1, 1)
 date_end = date(2011, 1, 1)
+mid_date = date_start + (date_end - date_start) / 2
+
 basket_method = "uniform"
-steps = 2
-n_paths = 1_000_000
+steps = 5
+n_paths = 100_000
 
 Calendar_Config = Calendar(
     start_date=date_start,
@@ -75,7 +77,7 @@ BS = BS_Model(
     antithetic=Sim_Config.antithetic
 ) 
 
-Paths = BS.apply_bs_percentage() 
+Paths = BS.apply_bs_value() 
 
 Basket = BasketModel(
     config=Sim_Config,
@@ -85,7 +87,7 @@ Basket = BasketModel(
 )
 
 Basket_paths = Basket.apply_basket_method()
-dates = [date_start, (date_start + (date_end - date_start) / 2), date_end]
+dates = [mid_date, date_end]
 
 DB = Database()
 db_path = ROOT / "0 - Pricer_V1" / "database.csv"
@@ -104,11 +106,12 @@ Call = Option_Call(
     start_date=date_start, 
     end_date=date_end, 
     option_type='EU', 
-    strike_price=1.1, 
-    value_method='relative', 
-    underlyings=[Eq1, Eq2, Eq3], 
+    strike_price=50, 
+    value_method='absolute', 
+    underlyings=[Eq1],# Eq2, Eq3], 
     basket_method=basket_method,
     rebate=0.0,
+    levier=1.0
 )
 
 Vanilla = Vanilla_Model(
@@ -125,6 +128,7 @@ price = Vanilla.price()
 
 end_timer = time.time()
 
-for i in price:
-    print(f"{i}:\n\t {price[i]}")
+print("Pricing results:")
+for k, v in price.items():
+    print(f"  Date: {k}, Price: {v['price']:.4f}, Std: {v['std']:.4f}")
 print(f"Computation Time: {end_timer - start_timer} seconds")
