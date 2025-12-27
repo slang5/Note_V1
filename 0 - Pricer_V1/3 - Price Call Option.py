@@ -42,10 +42,10 @@ Equity_3 = UnderlyingParams(
 
 portfolio = PortfolioParams(
     underlyings={
-        Equity_1.isin: Equity_1,})
-        #Equity_2.isin: Equity_2,
-        #Equity_3.isin: Equity_3}
-#)
+        Equity_1.isin: Equity_1,
+        Equity_2.isin: Equity_2,
+        Equity_3.isin: Equity_3}
+)
 
 date_start = date(2010, 1, 1)
 date_end = date(2011, 1, 1)
@@ -108,7 +108,7 @@ Call = Option_Call(
     option_type='EU', 
     strike_price=50, 
     value_method='absolute', 
-    underlyings=[Eq1],# Eq2, Eq3], 
+    underlyings=[Eq1, Eq2, Eq3], 
     basket_method=basket_method,
     rebate=0.0,
     levier=1.0
